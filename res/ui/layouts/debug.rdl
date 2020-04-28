@@ -1,0 +1,74 @@
+Panel
+    name: "panelDebug"
+    userCanResize: true
+    regionAlign: bottom
+    size: 300, 300
+    finalFocusRegion: true
+    darkSplit: true
+    finalFocus: true
+    background: action
+    minSize: 150, 150
+    isVisible: false
+
+    TabLayout
+        orientation: horizontal
+        height: 21
+        regionAlign: top
+        margin: 5
+
+        TabButton
+            checked: true
+            caption: "Debug"
+            width: 100
+            name: "tabButtonDebug"
+            icons: "tape"
+
+        TabButton
+            caption: "Profile"
+            width: 100
+            name: "tabButtonProfile"
+            icons: "clock"
+
+    Panel
+        regionAlign: client
+        tabVisibleRule: "tabButtonDebug"
+
+        # Panel
+        #     userCanResize: true
+        #     regionAlign: left
+        #     size: 300, 300
+        #     caption: "Checkpoints"
+
+        Panel
+            userCanResize: true
+            regionAlign: left
+            size: 300, 300
+            caption: "Frames"
+
+        Panel
+            userCanResize: true
+            regionAlign: client
+            size: 300, 300
+            caption: "Variables"
+
+    Panel
+        regionAlign: client
+        tabVisibleRule: "tabButtonProfile"
+
+        Panel
+            userCanResize: true
+            regionAlign: left
+            size: 300, 300
+            caption: "Profile"
+
+        Panel
+            userCanResize: true
+            regionAlign: left
+            size: 300, 300
+            caption: "Threads"
+
+        Panel
+            userCanResize: true
+            regionAlign: client
+            size: 300, 300
+            caption: "Memory"

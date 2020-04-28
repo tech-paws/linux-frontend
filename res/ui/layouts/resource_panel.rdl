@@ -1,0 +1,70 @@
+Panel
+    caption: $caption
+    regionAlign: top
+    heightType: wrapContent
+    userCanHide: true
+    userCanResize: false
+
+    ChainLayout
+        widthType: matchParent
+        margin: 5
+
+        DropListMenu
+            widthType: matchParent
+            caption: "Main"
+            icons: "notes"
+            name: "dropListButtonSprites"
+
+            ListMenu
+                size: 200, 200
+                isPopup: true
+                name: "listMenuSpriteGroups"
+
+        TextInput
+            widthType: matchParent
+            isVisible: false
+            name: "textInputGroupCurrentName"
+            text: "Main"
+
+        Button
+            name: "buttonAddSpriteGroup"
+            caption: ""
+            icons: "add"
+
+        Button
+            name: "buttonRemoveSpriteGroup"
+            caption: ""
+            icons: "delete"
+
+Panel
+    regionAlign: top
+    background: light
+    size: 0, 100
+    minSize: 100, 200
+    padding: 5
+
+    ListMenu
+        widthType: matchParent
+        heightType: matchParent
+        isPopup: false
+        name: "listMenuSprites"
+
+Panel
+    regionAlign: top
+    background: light
+    heightType: wrapContent
+
+    ChainLayout
+        widthType: matchParent
+        margin: 5
+
+        Button
+            caption: "Delete"
+            icons: "delete"
+            widthType: matchParent
+            isEnabled: false
+
+        Button
+            caption: "Add"
+            icons: "add"
+            widthType: matchParent

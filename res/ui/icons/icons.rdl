@@ -1,0 +1,51 @@
+Config
+    icons: "icons.png"
+    themed: true
+    size: 18, 18
+    start: 9, 9
+    gaps: 3, 3
+
+Icons
+    grid: 3, 3
+    ghost: 7, 5
+    red_triangle: 1, 4
+    file: 1, 1
+    folder: 2, 1
+    folder_clock: 3, 1
+    check: 4, 1
+    check_dots: 5, 1
+    info: 6, 2
+    material: 4, 4
+    texture: 4, 7
+    settings: 2, 3
+    triangle: 6, 4
+    joins: 1, 8
+    particles: 2, 4
+    bounce: 5, 4
+    tape: 6, 9
+    birds: 10, 10
+    clock: 5, 9
+    add: 1, 5
+    delete: 3, 5
+    notes: 10, 5
+    preferences: 6, 1
+    quit: 7, 1
+    undo: 8, 1
+    redo: 9, 1
+    copy: 1, 2
+    paste: 2, 2
+    cut: 10, 1
+    duplicate: 3, 2
+    checkbox_uchecked: 2, 8
+    checkbox_checked: 3, 8
+    web: 5, 2
+    manual: 4, 2
+    info: 6, 2
+    up: 5, 8
+    down: 4, 8
+    open_eye: 5, 7
+    close_eye: 6, 7
+    cursor: 7, 7
+    sprite: 2, 10
+    point: 9, 3
+    sun: 11, 9

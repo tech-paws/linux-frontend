@@ -1,0 +1,3 @@
+TestGroup
+    cancel: "Ctrl+G"
+    menuItem: "Alt+M"

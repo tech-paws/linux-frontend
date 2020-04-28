@@ -1,0 +1,16 @@
+Config
+    icons: "toolbar_cme.png"
+    themed: true
+    size: 24, 24
+    start: 0, 0
+    gaps: 0, 0
+
+Icons
+    cursor: 1, 1
+    gnd: 2, 1
+    power: 3, 1
+    pin: 4, 1
+    wire: 5, 1
+    text: 6, 1
+    mcu: 7, 1
+    bus: 8, 1

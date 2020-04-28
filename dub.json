@@ -1,0 +1,12 @@
+{
+    "authors": [
+	"Andrey"
+    ],
+    "copyright": "Copyright © 2020, Andrey",
+    "description": "teck.paws",
+    "license": "MIT",
+    "name": "tech.paws",
+    "dependencies": {
+        "rpui": "~master"
+    },
+}
