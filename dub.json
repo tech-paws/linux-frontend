@@ -1,12 +1,17 @@
 {
-    "authors": [
-	"Andrey"
-    ],
-    "copyright": "Copyright © 2020, Andrey",
-    "description": "teck.paws",
-    "license": "MIT",
-    "name": "tech.paws",
-    "dependencies": {
-        "rpui": "~master"
-    },
+	"authors": [
+		"Andrey"
+	],
+	"copyright": "Copyright © 2020, Andrey",
+	"dependencies": {
+		"hunt": "~>1.4.13",
+		"rpui": "~master",
+		"vibe-d:data": "~>0.8.6"
+	},
+	"description": "teck.paws",
+	"lflags": [
+		"libs/libbackend.so"
+	],
+	"license": "MIT",
+	"name": "tech.paws"
 }

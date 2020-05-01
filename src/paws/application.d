@@ -9,7 +9,9 @@ import gapi.transform;
 import gapi.camera;
 import gapi.opengl;
 
+import paws.backend;
 debug import paws.debug_service.view;
+import paws.scheme_editor.view;
 
 final class MainApplication : Application {
     private View rootView;
@@ -22,10 +24,13 @@ final class MainApplication : Application {
     override void onRender() {
         super.onRender();
         rootView.onRender();
+        step();
     }
 
     override void onCreate() {
         super.onCreate();
+
+        init_world();
 
         auto viewResources = createViewResources("light");
         viewResources.strings.setLocale("en");
@@ -36,5 +41,6 @@ final class MainApplication : Application {
         events.subscribe(rootView);
 
         debug DebugViewComponent.create(rootView);
+        SchemeEditorViewComponent.create(rootView);
     }
 }
