@@ -23,12 +23,13 @@ import gapi.shader_uniform;
 import paws.backend;
 
 enum linesId = 0;
-enum sparseArrayLength = 1;
+enum cameraId = 1;
+enum sparseArrayLength = 2;
 
 final class Renderer : CanvasRenderer {
     private Widget widget;
 
-    // Render data
+    // Data
     private Array!vec2 pos2f;
     private Array!vec2 pos3f;
     private Array!vec4 color;
@@ -108,7 +109,7 @@ final class Renderer : CanvasRenderer {
         const commands = getRenderCommands();
 
         foreach (const RenderCommand command; commands) {
-            handleCommand(command);
+            handleRenderCommand(command);
         }
     }
 
@@ -122,7 +123,7 @@ final class Renderer : CanvasRenderer {
         colorShader = createShaderProgram("color program", [vertexShader, fragmentShader]);
     }
 
-    private void handleCommand(RenderCommand command) {
+    private void handleRenderCommand(RenderCommand command) {
         switch (command.type) {
             case RenderCommandType.pushColor:
                 color.insert(command.value.vec4f);
@@ -151,8 +152,41 @@ final class Renderer : CanvasRenderer {
         }
     }
 
+    private void handleExecCommand(ExecCommand command) {
+        switch (command.type) {
+            case ExecCommandType.pushPos2f:
+                pos2f.insert(command.value.vec2f);
+                break;
+
+            case ExecCommandType.updateCameraPosition:
+                updateCameraPosition();
+                break;
+
+            default:
+                debug throw new Error("Unknown command");
+        }
+    }
+
     override void onProgress(in ProgressEvent event) {
+        const commands = getExecCommands();
+
+        foreach (const ExecCommand command; commands) {
+            handleExecCommand(command);
+        }
+
         updateLinesTransforms();
+
+        set_view_port_size(
+            cast(int) widget.width,
+            cast(int) widget.height
+        );
+    }
+
+    private void updateCameraPosition() {
+        assert(pos2f.length > 0);
+
+        modelMatrix[cameraId] = mat4.translation(vec3(pos2f[0], 0.0f));
+        clearData();
     }
 
     private void updateLinesTransforms() {
@@ -164,11 +198,13 @@ final class Renderer : CanvasRenderer {
         const screenCameraView = widget.view.cameraView;
 
         modelMatrix[linesId] = create2DModelMatrixPosition(screenPosition);
-        mvpMatrix[linesId] = screenCameraView.mvpMatrix * modelMatrix[linesId];
+        mvpMatrix[linesId] = screenCameraView.mvpMatrix * modelMatrix[cameraId] * modelMatrix[linesId];
     }
 
-    private void updateLines() {
-        debug assert(pos2f.length >= 2);
+    private bool updateLines() {
+        if (pos2f.length < 2) {
+            return false;
+        }
 
         linesVertices.clear();
         linesIndices.clear();
@@ -182,17 +218,19 @@ final class Renderer : CanvasRenderer {
         glBufferData(GL_ARRAY_BUFFER, uint.sizeof * cast(int) linesIndices.length, &linesIndices[0], GL_STREAM_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, verticesBuffer[linesId].id);
         glBufferData(GL_ARRAY_BUFFER, vec2.sizeof * cast(int) linesVertices.length, &linesVertices[0], GL_STREAM_DRAW);
+
+        return true;
     }
 
     private void drawLines() {
-        updateLines();
+        if (updateLines()) {
+            setShaderProgramUniformMatrix(currentShader, "MVP", mvpMatrix[linesId]);
 
-        setShaderProgramUniformMatrix(currentShader, "MVP", mvpMatrix[linesId]);
+            bindVAO(vao[linesId]);
+            bindIndices(indicesBuffer[linesId]);
 
-        bindVAO(vao[linesId]);
-        bindIndices(indicesBuffer[linesId]);
-
-        renderIndexedGeometry(cast(uint) linesIndices.length, GL_LINES);
-        clearData();
+            renderIndexedGeometry(cast(uint) linesIndices.length, GL_LINES);
+            clearData();
+        }
     }
 }
