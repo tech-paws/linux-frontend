@@ -176,7 +176,7 @@ final class Renderer : CanvasRenderer {
 
         updateLinesTransforms();
 
-        set_view_port_size(
+        setViewPortSize(
             cast(int) widget.width,
             cast(int) widget.height
         );

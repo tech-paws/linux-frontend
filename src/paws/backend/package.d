@@ -16,11 +16,11 @@ extern (C) {
 
     RawBuffer get_exec_commands();
 
+    void send_request_commands(RawBuffer data);
+
     void init_world();
 
     void step();
-
-    void set_view_port_size(int width, int height);
 }
 
 string rawBufferToString(RawBuffer buffer) {
@@ -37,13 +37,14 @@ struct ExecCommand {
     ExecCommandValue value;
 }
 
+struct RequestCommand {
+    RequestCommandType type;
+    RequestCommandValue value;
+}
+
 enum ExecCommandType {
     pushPos2f,
     updateCameraPosition,
-}
-
-union ExecCommandValue {
-    vec2 vec2f;
 }
 
 enum RenderCommandType {
@@ -54,10 +55,74 @@ enum RenderCommandType {
     setColorUniform,
 }
 
+enum RequestCommandType {
+    setViewportSize,
+    onTouchStart,
+    onTouchEnd,
+    onTouchMove,
+}
+
+union ExecCommandValue {
+    vec2 vec2f;
+}
+
 union RenderCommandValue {
     vec2 vec2f;
     vec3 vec3f;
     vec4 vec4f;
+}
+
+union RequestCommandValue {
+    vec2 vec2f;
+    vec2i vec2int;
+}
+
+void setViewPortSize(in int width, in int height) {
+    const type = RequestCommandType.setViewportSize;
+
+    RequestCommandValue value;
+    value.vec2int = vec2i(width, height);
+
+    sendRequestCommand(RequestCommand(type, value));
+}
+
+void sendRequestCommand(RequestCommand command) {
+    Array!RequestCommand commands;
+    commands.insert(command);
+    sendRequestCommands(commands);
+}
+
+void sendRequestCommands(Array!RequestCommand commands) {
+    JSONValue json;
+    json.array = [];
+
+    foreach (command; commands) {
+        json.array = json.array ~ requestCommandToJson(command);
+    }
+
+    const jsonString = json.toString();
+
+    const buffer = RawBuffer(
+        &(cast(byte[]) jsonString)[0],
+        jsonString.length
+    );
+
+    send_request_commands(buffer);
+}
+
+private JSONValue requestCommandToJson(RequestCommand command) {
+    switch (command.type) {
+        case RequestCommandType.setViewportSize:
+            JSONValue value = [
+                "width": command.value.vec2int.x,
+                "height": command.value.vec2int.y
+            ];
+            JSONValue json = ["SetViewportSize": value];
+            return json;
+
+        default:
+            throw new Error("Unknown type");
+    }
 }
 
 Array!RenderCommand getRenderCommands() {

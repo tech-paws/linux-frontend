@@ -1,9 +1,13 @@
 module paws.scheme_editor.view;
 
+import std.stdio;
+
 import rpui.widgets.canvas.widget;
 import rpui.view_component;
 import rpui.view;
 import rpui.widget;
+import rpui.events;
+import rpui.math;
 
 import paws.renderer;
 
@@ -24,5 +28,26 @@ final class SchemeEditorViewComponent : ViewComponent {
     override void onCreate() {
         super.onCreate();
         canvas.canvasRenderer = new Renderer();
+    }
+
+    @onMouseDownListener("canvas")
+    void canvasOnMouseDown(in MouseDownEvent event) {
+        if (!canvas.pointIsEnter(vec2i(event.x, event.y))) {
+            return;
+        }
+    }
+
+    @onMouseUpListener("canvas")
+    void canvasOnMouseUp(in MouseUpEvent event) {
+        if (!canvas.pointIsEnter(vec2i(event.x, event.y))) {
+            return;
+        }
+    }
+
+    @onMouseMoveListener("canvas")
+    void canvasOnMouseMove(in MouseMoveEvent event) {
+        if (!canvas.pointIsEnter(vec2i(event.x, event.y))) {
+            return;
+        }
     }
 }
