@@ -86,6 +86,33 @@ void setViewPortSize(in int width, in int height) {
     sendRequestCommand(RequestCommand(type, value));
 }
 
+void sendOnTouchStart(in float x, in float y) {
+    const type = RequestCommandType.onTouchStart;
+
+    RequestCommandValue value;
+    value.vec2f = vec2(x, y);
+
+    sendRequestCommand(RequestCommand(type, value));
+}
+
+void sendOnTouchEnd(in float x, in float y) {
+    const type = RequestCommandType.onTouchEnd;
+
+    RequestCommandValue value;
+    value.vec2f = vec2(x, y);
+
+    sendRequestCommand(RequestCommand(type, value));
+}
+
+void sendOnTouchMove(in float x, in float y) {
+    const type = RequestCommandType.onTouchMove;
+
+    RequestCommandValue value;
+    value.vec2f = vec2(x, y);
+
+    sendRequestCommand(RequestCommand(type, value));
+}
+
 void sendRequestCommand(RequestCommand command) {
     Array!RequestCommand commands;
     commands.insert(command);
@@ -118,6 +145,30 @@ private JSONValue requestCommandToJson(RequestCommand command) {
                 "height": command.value.vec2int.y
             ];
             JSONValue json = ["SetViewportSize": value];
+            return json;
+
+        case RequestCommandType.onTouchStart:
+            JSONValue value = [
+                "x": command.value.vec2f.x,
+                "y": command.value.vec2f.y
+            ];
+            JSONValue json = ["OnTouchStart": value];
+            return json;
+
+        case RequestCommandType.onTouchEnd:
+            JSONValue value = [
+                "x": command.value.vec2f.x,
+                "y": command.value.vec2f.y
+            ];
+            JSONValue json = ["OnTouchEnd": value];
+            return json;
+
+        case RequestCommandType.onTouchMove:
+            JSONValue value = [
+                "x": command.value.vec2f.x,
+                "y": command.value.vec2f.y
+            ];
+            JSONValue json = ["OnTouchMove": value];
             return json;
 
         default:

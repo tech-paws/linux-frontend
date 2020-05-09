@@ -10,11 +10,15 @@ import rpui.events;
 import rpui.math;
 
 import paws.renderer;
+import paws.backend;
 
 final class SchemeEditorViewComponent : ViewComponent {
+    View view;
+
     @bindWidget Canvas canvas;
 
     this(View view, in string laytoutFileName, in string shortcutsFileName) {
+        this.view = view;
         super(view, laytoutFileName, shortcutsFileName);
     }
 
@@ -35,6 +39,11 @@ final class SchemeEditorViewComponent : ViewComponent {
         if (!canvas.pointIsEnter(vec2i(event.x, event.y))) {
             return;
         }
+
+        sendOnTouchStart(
+            event.x - canvas.absolutePosition.x,
+            event.y - canvas.absolutePosition.y
+        );
     }
 
     @onMouseUpListener("canvas")
@@ -42,6 +51,11 @@ final class SchemeEditorViewComponent : ViewComponent {
         if (!canvas.pointIsEnter(vec2i(event.x, event.y))) {
             return;
         }
+
+        sendOnTouchEnd(
+            event.x - canvas.absolutePosition.x,
+            event.y - canvas.absolutePosition.y
+        );
     }
 
     @onMouseMoveListener("canvas")
@@ -49,5 +63,10 @@ final class SchemeEditorViewComponent : ViewComponent {
         if (!canvas.pointIsEnter(vec2i(event.x, event.y))) {
             return;
         }
+
+        sendOnTouchMove(
+            event.x - canvas.absolutePosition.x,
+            event.y - canvas.absolutePosition.y
+        );
     }
 }
