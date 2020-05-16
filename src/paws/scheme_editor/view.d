@@ -14,6 +14,7 @@ import paws.backend;
 
 final class SchemeEditorViewComponent : ViewComponent {
     View view;
+    private CommandsHandler commandsHandler;
 
     @bindWidget Canvas canvas;
 
@@ -31,7 +32,9 @@ final class SchemeEditorViewComponent : ViewComponent {
 
     override void onCreate() {
         super.onCreate();
-        canvas.canvasRenderer = new Renderer();
+
+        this.commandsHandler = new CommandsHandler();
+        canvas.canvasRenderer = new Renderer(commandsHandler);
     }
 
     @onMouseDownListener("canvas")
@@ -40,7 +43,7 @@ final class SchemeEditorViewComponent : ViewComponent {
             return;
         }
 
-        sendOnTouchStart(
+        commandsHandler.pushSendOnTouchStart(
             event.x - canvas.absolutePosition.x,
             event.y - canvas.absolutePosition.y
         );
@@ -48,11 +51,7 @@ final class SchemeEditorViewComponent : ViewComponent {
 
     @onMouseUpListener("canvas")
     void canvasOnMouseUp(in MouseUpEvent event) {
-        if (!canvas.pointIsEnter(vec2i(event.x, event.y))) {
-            return;
-        }
-
-        sendOnTouchEnd(
+        commandsHandler.pushSendOnTouchEnd(
             event.x - canvas.absolutePosition.x,
             event.y - canvas.absolutePosition.y
         );
@@ -64,7 +63,7 @@ final class SchemeEditorViewComponent : ViewComponent {
             return;
         }
 
-        sendOnTouchMove(
+        commandsHandler.pushSendOnTouchMove(
             event.x - canvas.absolutePosition.x,
             event.y - canvas.absolutePosition.y
         );

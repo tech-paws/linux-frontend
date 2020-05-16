@@ -28,11 +28,12 @@ enum sparseArrayLength = 2;
 
 final class Renderer : CanvasRenderer {
     private Widget widget;
+    private CommandsHandler commandsHandler;
 
     // Data
-    private Array!vec2 pos2f;
-    private Array!vec2 pos3f;
-    private Array!vec4 color;
+    private Array!vec2 vec2fData;
+    private Array!vec2i vec2iData;
+    private Array!vec4 colorData;
 
     // Sparse Array
     private Array!Transform2D transform;
@@ -48,6 +49,10 @@ final class Renderer : CanvasRenderer {
 
     private ShaderProgram colorShader;
     private ShaderProgram currentShader;
+
+    this(CommandsHandler commandsHandler) {
+        this.commandsHandler = commandsHandler;
+    }
 
     override void onCreate(Widget widget) {
         this.widget = widget;
@@ -97,16 +102,16 @@ final class Renderer : CanvasRenderer {
     }
 
     private void clearData() {
-        pos2f.clear();
-        pos3f.clear();
-        color.clear();
+        vec2fData.clear();
+        vec2iData.clear();
+        colorData.clear();
     }
 
     override void onRender() {
         glClearColor(240f/255f, 240f/255f, 240f/255f, 0);
         clearData();
 
-        const commands = getRenderCommands();
+        const commands = commandsHandler.getRenderCommands();
 
         foreach (const RenderCommand command; commands) {
             handleRenderCommand(command);
@@ -124,27 +129,27 @@ final class Renderer : CanvasRenderer {
     }
 
     private void handleRenderCommand(RenderCommand command) {
-        switch (command.type) {
-            case RenderCommandType.pushColor:
-                color.insert(command.value.vec4f);
+        switch (command.command_type) {
+            case RenderCommandType.PushColor:
+                colorData.insert(commandsHandler.colorData(command.data));
                 break;
 
-            case RenderCommandType.pushPos2f:
-                pos2f.insert(command.value.vec2f);
+            case RenderCommandType.PushVec2f:
+                vec2fData.insert(commandsHandler.vec2fData(command.data));
                 break;
 
-            case RenderCommandType.drawLines:
+            case RenderCommandType.DrawLines:
                 drawLines();
                 break;
 
-            case RenderCommandType.pushColorShader:
+            case RenderCommandType.PushColorShader:
                 bindShaderProgram(colorShader);
                 break;
 
-            case RenderCommandType.setColorUniform:
-                assert(color.length >= 1);
+            case RenderCommandType.SetColorUniform:
+                assert(colorData.length >= 1);
                 currentShader = colorShader;
-                setShaderProgramUniformVec4f(colorShader, "color", color[0]);
+                setShaderProgramUniformVec4f(colorShader, "color", colorData[0]);
                 break;
 
             default:
@@ -152,13 +157,13 @@ final class Renderer : CanvasRenderer {
         }
     }
 
-    private void handleExecCommand(ExecCommand command) {
-        switch (command.type) {
-            case ExecCommandType.pushPos2f:
-                pos2f.insert(command.value.vec2f);
+    private void handleExecCommand(ExecutionCommand command) {
+        switch (command.command_type) {
+            case ExecutionCommandType.PushVec2f:
+                vec2fData.insert(commandsHandler.vec2fData(command.data));
                 break;
 
-            case ExecCommandType.updateCameraPosition:
+            case ExecutionCommandType.UpdateCameraPosition:
                 updateCameraPosition();
                 break;
 
@@ -168,24 +173,25 @@ final class Renderer : CanvasRenderer {
     }
 
     override void onProgress(in ProgressEvent event) {
-        const commands = getExecCommands();
+        commandsHandler.pushSetViewPortSize(
+            cast(int) widget.width,
+            cast(int) widget.height
+        );
+        commandsHandler.sendRequestCommands();
 
-        foreach (const ExecCommand command; commands) {
+        const commands = commandsHandler.getExecutionCommands();
+
+        foreach (const ExecutionCommand command; commands) {
             handleExecCommand(command);
         }
 
         updateLinesTransforms();
-
-        setViewPortSize(
-            cast(int) widget.width,
-            cast(int) widget.height
-        );
     }
 
     private void updateCameraPosition() {
-        assert(pos2f.length > 0);
+        assert(vec2fData.length > 0);
 
-        modelMatrix[cameraId] = mat4.translation(vec3(pos2f[0], 0.0f));
+        modelMatrix[cameraId] = mat4.translation(vec3(vec2fData[0], 0.0f));
         clearData();
     }
 
@@ -202,15 +208,15 @@ final class Renderer : CanvasRenderer {
     }
 
     private bool updateLines() {
-        if (pos2f.length < 2) {
+        if (vec2fData.length < 2) {
             return false;
         }
 
         linesVertices.clear();
         linesIndices.clear();
 
-        for (int i = 0; i < pos2f.length; ++i) {
-            linesVertices.insert(pos2f[i]);
+        for (int i = 0; i < vec2fData.length; ++i) {
+            linesVertices.insert(vec2fData[i]);
             linesIndices.insert(i);
         }
 

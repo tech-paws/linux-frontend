@@ -12,342 +12,245 @@ extern (C) {
         size_t length;
     }
 
-    RawBuffer get_render_commands();
+    enum SerializeFormat {
+        json = 0,
+        flatbuffers = 1,
+    }
 
-    RawBuffer get_exec_commands();
+    enum ExecutionCommandType {
+        PushVec2f = 0,
+        UpdateCameraPosition = 1,
+    };
 
-    void send_request_commands(RawBuffer data);
+    enum RenderCommandType {
+        PushColor = 0,
+        PushVec2f = 1,
+        SetColorUniform = 2,
+        PushColorShader = 3,
+        DrawLines = 4,
+        DrawPoints = 5,
+        DrawQuads = 6,
+    };
+
+    enum RequestCommandType {
+        PushVec2f = 0,
+        PushVec2i = 5,
+        SetViewportSize = 1,
+        OnTouchStart = 2,
+        OnTouchEnd = 3,
+        OnTouchMove = 4,
+    };
+
+    struct Vec2f {
+        float x;
+        float y;
+    }
+
+    struct Vec2i {
+        int x;
+        int y;
+    }
+
+    struct Color {
+        float r;
+        float g;
+        float b;
+        float a;
+    }
+
+    struct CommandData {
+        Vec2f vec2f;
+        Vec2i vec2i;
+        Color color;
+    }
+
+    struct ExecutionCommand {
+        ExecutionCommandType command_type;
+        CommandData data;
+    }
+
+    struct RenderCommand {
+        RenderCommandType command_type;
+        CommandData data;
+    }
+
+    struct RequestCommand {
+        RequestCommandType command_type;
+        CommandData data;
+    }
+
+    struct RenderCommands {
+        const(RenderCommand)* items;
+        int length;
+    }
+
+    struct ExecutionCommands {
+        const(ExecutionCommand)* items;
+        int length;
+    }
+
+    ExecutionCommands c_get_exec_commands();
+
+    RenderCommands c_get_render_commands();
+
+    void c_send_request_commands(const(RequestCommand)* data, int length);
+
+    RawBuffer get_render_commands(SerializeFormat format);
+
+    RawBuffer get_exec_commands(SerializeFormat format);
+
+    void send_request_commands(SerializeFormat format, RawBuffer data);
 
     void init_world();
 
     void step();
 }
 
-string rawBufferToString(RawBuffer buffer) {
-    return (cast(immutable(char)*)buffer.data)[0..buffer.length];
-}
-
-struct RenderCommand {
-    RenderCommandType type;
-    RenderCommandValue value;
-}
-
-struct ExecCommand {
-    ExecCommandType type;
-    ExecCommandValue value;
-}
-
-struct RequestCommand {
-    RequestCommandType type;
-    RequestCommandValue value;
-}
-
-enum ExecCommandType {
-    pushPos2f,
-    updateCameraPosition,
-}
-
-enum RenderCommandType {
-    pushColor,
-    pushPos2f,
-    drawLines,
-    pushColorShader,
-    setColorUniform,
-}
-
-enum RequestCommandType {
-    setViewportSize,
-    onTouchStart,
-    onTouchEnd,
-    onTouchMove,
-}
-
-union ExecCommandValue {
-    vec2 vec2f;
-}
-
-union RenderCommandValue {
-    vec2 vec2f;
-    vec3 vec3f;
-    vec4 vec4f;
-}
-
-union RequestCommandValue {
-    vec2 vec2f;
-    vec2i vec2int;
-}
-
-void setViewPortSize(in int width, in int height) {
-    const type = RequestCommandType.setViewportSize;
-
-    RequestCommandValue value;
-    value.vec2int = vec2i(width, height);
-
-    sendRequestCommand(RequestCommand(type, value));
-}
-
-void sendOnTouchStart(in float x, in float y) {
-    const type = RequestCommandType.onTouchStart;
-
-    RequestCommandValue value;
-    value.vec2f = vec2(x, y);
-
-    sendRequestCommand(RequestCommand(type, value));
-}
-
-void sendOnTouchEnd(in float x, in float y) {
-    const type = RequestCommandType.onTouchEnd;
-
-    RequestCommandValue value;
-    value.vec2f = vec2(x, y);
-
-    sendRequestCommand(RequestCommand(type, value));
-}
-
-void sendOnTouchMove(in float x, in float y) {
-    const type = RequestCommandType.onTouchMove;
-
-    RequestCommandValue value;
-    value.vec2f = vec2(x, y);
-
-    sendRequestCommand(RequestCommand(type, value));
-}
-
-void sendRequestCommand(RequestCommand command) {
-    Array!RequestCommand commands;
-    commands.insert(command);
-    sendRequestCommands(commands);
-}
-
-void sendRequestCommands(Array!RequestCommand commands) {
-    JSONValue json;
-    json.array = [];
-
-    foreach (command; commands) {
-        json.array = json.array ~ requestCommandToJson(command);
-    }
-
-    const jsonString = json.toString();
-
-    const buffer = RawBuffer(
-        &(cast(byte[]) jsonString)[0],
-        jsonString.length
+CommandData createEmptyData() {
+    return CommandData(
+        Vec2f(0, 0),
+        Vec2i(0, 0),
+        Color(0, 0, 0, 0)
     );
-
-    send_request_commands(buffer);
 }
 
-private JSONValue requestCommandToJson(RequestCommand command) {
-    switch (command.type) {
-        case RequestCommandType.setViewportSize:
-            JSONValue value = [
-                "width": command.value.vec2int.x,
-                "height": command.value.vec2int.y
-            ];
-            JSONValue json = ["SetViewportSize": value];
-            return json;
-
-        case RequestCommandType.onTouchStart:
-            JSONValue value = [
-                "x": command.value.vec2f.x,
-                "y": command.value.vec2f.y
-            ];
-            JSONValue json = ["OnTouchStart": value];
-            return json;
-
-        case RequestCommandType.onTouchEnd:
-            JSONValue value = [
-                "x": command.value.vec2f.x,
-                "y": command.value.vec2f.y
-            ];
-            JSONValue json = ["OnTouchEnd": value];
-            return json;
-
-        case RequestCommandType.onTouchMove:
-            JSONValue value = [
-                "x": command.value.vec2f.x,
-                "y": command.value.vec2f.y
-            ];
-            JSONValue json = ["OnTouchMove": value];
-            return json;
-
-        default:
-            throw new Error("Unknown type");
-    }
+CommandData createVec2fData(float x, float y) {
+    return CommandData(
+        Vec2f(x, y),
+        Vec2i(0, 0),
+        Color(0, 0, 0, 0)
+    );
 }
 
-Array!RenderCommand getRenderCommands() {
-    Array!RenderCommand commands;
-
-    const buffer = get_render_commands();
-    const jsonString = rawBufferToString(buffer);
-
-    auto json = parseJSON(jsonString);
-
-    debug assert(json.type() == JSONType.array);
-
-    foreach (JSONValue value; json.array()) {
-        const command = parseRenderCommand(value);
-        commands.insert(command);
-    }
-
-    return commands;
+CommandData createVec2iData(int x, int y) {
+    return CommandData(
+        Vec2f(0, 0),
+        Vec2i(x, y),
+        Color(0, 0, 0, 0)
+    );
 }
 
-Array!ExecCommand getExecCommands() {
-    Array!ExecCommand commands;
-
-    const buffer = get_exec_commands();
-    const jsonString = rawBufferToString(buffer);
-
-    auto json = parseJSON(jsonString);
-
-    debug assert(json.type() == JSONType.array);
-
-    foreach (JSONValue value; json.array()) {
-        const command = parseExecCommand(value);
-        commands.insert(command);
-    }
-
-    return commands;
+CommandData createColorData(float r, float g, float b, float a) {
+    return CommandData(
+        Vec2f(0, 0),
+        Vec2i(0, 0),
+        Color(r, g, b, a)
+    );
 }
 
-private RenderCommand parseRenderCommand(JSONValue json) {
-    RenderCommand renderCommand;
+final class CommandsHandler {
+    private Array!RequestCommand requestCommands;
+    private Array!RenderCommand renderCommands;
+    private Array!ExecutionCommand executionCommands;
 
-    renderCommand.type = parseRenderCommandType(json);
-
-    switch (renderCommand.type) {
-        case RenderCommandType.pushColor:
-            const obj = json.object()["PushColor"].object();
-            renderCommand.value.vec4f = vec4(
-                obj["r"].floating(),
-                obj["g"].floating(),
-                obj["b"].floating(),
-                obj["a"].floating()
-            );
-            break;
-
-        case RenderCommandType.pushPos2f:
-            const obj = json.object()["PushPos2f"].object();
-            renderCommand.value.vec2f = vec2(
-                obj["x"].floating(),
-                obj["y"].floating(),
-            );
-            break;
-
-        case RenderCommandType.drawLines:
-            // No data
-            break;
-
-        case RenderCommandType.pushColorShader:
-            // No data
-            break;
-
-        case RenderCommandType.setColorUniform:
-            // No data
-            break;
-
-        default:
-            throw new Error("Unknown command type");
+    this() {
+        requestCommands.reserve(10000);
+        renderCommands.reserve(10000);
+        executionCommands.reserve(10000);
     }
 
-    return renderCommand;
-}
-
-private RenderCommandType parseRenderCommandType(JSONValue json) {
-    string type;
-
-    switch (json.type()) {
-        case JSONType.string:
-            type = json.str();
-            break;
-
-        case JSONType.object:
-            foreach (key, value; json.object()) {
-                type = key;
-                break;
-            }
-
-            break;
-
-        default:
-            throw new Error("Unknown command");
+    void sendRequestCommands() {
+        if (!requestCommands.empty) {
+            c_send_request_commands(&requestCommands[0], cast(int) requestCommands.length);
+            requestCommands.clear();
+        }
     }
 
-    switch (type) {
-        case "PushColor":
-            return RenderCommandType.pushColor;
-
-        case "PushPos2f":
-            return RenderCommandType.pushPos2f;
-
-        case "DrawLines":
-            return RenderCommandType.drawLines;
-
-        case "PushColorShader":
-            return RenderCommandType.pushColorShader;
-
-        case "SetColorUniform":
-            return RenderCommandType.setColorUniform;
-
-        default:
-            throw new Error("Unknown command");
-    }
-}
-
-private ExecCommand parseExecCommand(JSONValue json) {
-    ExecCommand execCommand;
-    execCommand.type = parseExecCommandType(json);
-
-    switch (execCommand.type) {
-        case ExecCommandType.pushPos2f:
-            const obj = json.object()["PushPos2f"].object();
-            execCommand.value.vec2f = vec2(
-                obj["x"].floating(),
-                obj["y"].floating()
-            );
-            break;
-
-        case ExecCommandType.updateCameraPosition:
-            // Nothing
-            break;
-
-        default:
-            throw new Error("Unknown command type");
+    void pushRequestCommand(RequestCommand command) {
+        requestCommands.insert(command);
     }
 
-    return execCommand;
-}
-
-private ExecCommandType parseExecCommandType(JSONValue json) {
-    string type;
-
-    switch (json.type()) {
-        case JSONType.string:
-            type = json.str();
-            break;
-
-        case JSONType.object:
-            foreach (key, value; json.object()) {
-                type = key;
-                break;
-            }
-
-            break;
-
-        default:
-            throw new Error("Unknown command");
+    void pushSetViewPortSize(in int width, in int height) {
+        pushRequestCommand(
+            RequestCommand(
+                RequestCommandType.PushVec2i,
+                createVec2iData(width, height)
+            )
+        );
+        pushRequestCommand(
+            RequestCommand(
+                RequestCommandType.SetViewportSize,
+                createEmptyData()
+            )
+        );
     }
 
-    switch (type) {
-        case "PushPos2f":
-            return ExecCommandType.pushPos2f;
+    void pushSendOnTouchStart(in float x, in float y) {
+        pushRequestCommand(
+            RequestCommand(
+                RequestCommandType.PushVec2f,
+                createVec2fData(x, y)
+            )
+        );
+        pushRequestCommand(
+            RequestCommand(
+                RequestCommandType.OnTouchStart,
+                createEmptyData()
+            )
+        );
+    }
 
-        case "UpdateCameraPosition":
-            return ExecCommandType.updateCameraPosition;
+    void pushSendOnTouchEnd(in float x, in float y) {
+        pushRequestCommand(
+            RequestCommand(
+                RequestCommandType.PushVec2f,
+                createVec2fData(x, y)
+            )
+        );
+        pushRequestCommand(
+            RequestCommand(
+                RequestCommandType.OnTouchEnd,
+                createEmptyData()
+            )
+        );
+    }
 
-        default:
-            throw new Error("Unknown command");
+    void pushSendOnTouchMove(in float x, in float y) {
+        pushRequestCommand(
+            RequestCommand(
+                RequestCommandType.PushVec2f,
+                createVec2fData(x, y)
+            )
+        );
+        pushRequestCommand(
+            RequestCommand(
+                RequestCommandType.OnTouchMove,
+                createEmptyData()
+            )
+        );
+    }
+
+    Array!RenderCommand getRenderCommands() {
+        renderCommands.clear();
+        const c_commands = c_get_render_commands();
+
+        for (int i = 0; i < c_commands.length; ++i) {
+            renderCommands.insert(c_commands.items[i]);
+        }
+
+        return renderCommands;
+    }
+
+    Array!ExecutionCommand getExecutionCommands() {
+        executionCommands.clear();
+        const c_commands = c_get_exec_commands();
+
+        for (int i = 0; i < c_commands.length; ++i) {
+            executionCommands.insert(c_commands.items[i]);
+        }
+
+        return executionCommands;
+    }
+
+    vec2 vec2fData(CommandData data) {
+        return vec2(data.vec2f.x, data.vec2f.y);
+    }
+
+    vec2i vec2iData(CommandData data) {
+        return vec2i(data.vec2i.x, data.vec2i.y);
+    }
+
+    vec4 colorData(CommandData data) {
+        return vec4(data.color.r, data.color.g, data.color.b, data.color.a);
     }
 }
