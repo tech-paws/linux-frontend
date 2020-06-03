@@ -27,9 +27,12 @@ extern (C) {
         PushVec2f = 1,
         SetColorUniform = 2,
         PushColorShader = 3,
+        PushTextShader = 9,
+        PushString = 8,
         DrawLines = 4,
         DrawPoints = 5,
         DrawQuads = 6,
+        DrawText = 7,
     };
 
     enum RequestCommandType {
@@ -62,6 +65,7 @@ extern (C) {
         Vec2f vec2f;
         Vec2i vec2i;
         Color color;
+        RawBuffer str;
     }
 
     struct ExecutionCommand {
@@ -104,6 +108,10 @@ extern (C) {
     void init_world();
 
     void step();
+}
+
+string rawBufferToString(RawBuffer buffer) {
+    return (cast(immutable(char)*)buffer.data)[0..buffer.length];
 }
 
 CommandData createEmptyData() {
@@ -252,5 +260,9 @@ final class CommandsHandler {
 
     vec4 colorData(CommandData data) {
         return vec4(data.color.r, data.color.g, data.color.b, data.color.a);
+    }
+
+    string stringData(CommandData data) {
+        return rawBufferToString(data.str);
     }
 }

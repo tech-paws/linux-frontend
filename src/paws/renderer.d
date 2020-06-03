@@ -19,12 +19,19 @@ import gapi.geometry;
 import gapi.geometry_quad;
 import gapi.shader;
 import gapi.shader_uniform;
+import gapi.text;
 
 import paws.backend;
 
 enum linesId = 0;
 enum cameraId = 1;
-enum sparseArrayLength = 2;
+enum textId = 2;
+enum quadsId = 3;
+enum sparseArrayLength = 4;
+
+private vec2 toScreenPosition(in float windowHeight, in vec2 position, in float height) {
+    return vec2(floor(position.x), floor(windowHeight - height - position.y));
+}
 
 final class Renderer : CanvasRenderer {
     private Widget widget;
@@ -34,6 +41,7 @@ final class Renderer : CanvasRenderer {
     private Array!vec2 vec2fData;
     private Array!vec2i vec2iData;
     private Array!vec4 colorData;
+    private Array!string stringsData;
 
     // Sparse Array
     private Array!Transform2D transform;
@@ -41,13 +49,18 @@ final class Renderer : CanvasRenderer {
     private Array!mat4 mvpMatrix;
     private Array!Buffer indicesBuffer;
     private Array!Buffer verticesBuffer;
+    private Array!Buffer texCoordsBuffer;
     private Array!VAO vao;
+
+    //
+    Text gapiTextData;
 
     // Lines data
     private Array!vec2 linesVertices;
     private Array!uint linesIndices;
 
     private ShaderProgram colorShader;
+    private ShaderProgram textShader;
     private ShaderProgram currentShader;
 
     this(CommandsHandler commandsHandler) {
@@ -58,8 +71,10 @@ final class Renderer : CanvasRenderer {
         this.widget = widget;
 
         createColorShader();
+        createTextShader();
         initSparseArrays();
         createLineBuffer();
+        createQuadsBuffer();
     }
 
     private void initSparseArrays() {
@@ -69,6 +84,7 @@ final class Renderer : CanvasRenderer {
             mvpMatrix.insert(mat4());
             indicesBuffer.insert(Buffer());
             verticesBuffer.insert(Buffer());
+            texCoordsBuffer.insert(Buffer());
             vao.insert(VAO());
         }
     }
@@ -97,6 +113,18 @@ final class Renderer : CanvasRenderer {
         createVector2fVAO(verticesBuffer[linesId], inAttrPosition);
     }
 
+    private void createQuadsBuffer() {
+        indicesBuffer[quadsId] = createIndicesBuffer(quadIndices);
+        verticesBuffer[quadsId] = createVector2fBuffer(quadVertices);
+        texCoordsBuffer[quadsId] = createVector2fBuffer(quadTexCoords);
+
+        vao[quadsId] = createVAO();
+
+        bindVAO(vao[quadsId]);
+        createVector2fVAO(verticesBuffer[quadsId], inAttrPosition);
+        createVector2fVAO(texCoordsBuffer[quadsId], inAttrTextCoords);
+    }
+
     override void onDestroy() {
         // TODO: Clean up
     }
@@ -105,6 +133,7 @@ final class Renderer : CanvasRenderer {
         vec2fData.clear();
         vec2iData.clear();
         colorData.clear();
+        stringsData.clear();
     }
 
     override void onRender() {
@@ -128,6 +157,16 @@ final class Renderer : CanvasRenderer {
         colorShader = createShaderProgram("color program", [vertexShader, fragmentShader]);
     }
 
+    private void createTextShader() {
+        const vertexSource = readText(buildPath("res", "shaders", "transform_vertex.glsl"));
+        const vertexShader = createShader("transform vertex shader", ShaderType.vertex, vertexSource);
+
+        const fragmentSource = readText(buildPath("res", "shaders", "text_fragment.glsl"));
+        const fragmentShader = createShader("text fragment shader", ShaderType.fragment, fragmentSource);
+
+        textShader = createShaderProgram("text program", [vertexShader, fragmentShader]);
+    }
+
     private void handleRenderCommand(RenderCommand command) {
         switch (command.command_type) {
             case RenderCommandType.PushColor:
@@ -138,18 +177,31 @@ final class Renderer : CanvasRenderer {
                 vec2fData.insert(commandsHandler.vec2fData(command.data));
                 break;
 
+            case RenderCommandType.PushString:
+                stringsData.insert(commandsHandler.stringData(command.data));
+                break;
+
             case RenderCommandType.DrawLines:
                 drawLines();
                 break;
 
             case RenderCommandType.PushColorShader:
                 bindShaderProgram(colorShader);
+                currentShader = colorShader;
+                break;
+
+            case RenderCommandType.PushTextShader:
+                bindShaderProgram(textShader);
+                currentShader = textShader;
                 break;
 
             case RenderCommandType.SetColorUniform:
                 assert(colorData.length >= 1);
-                currentShader = colorShader;
-                setShaderProgramUniformVec4f(colorShader, "color", colorData[0]);
+                setShaderProgramUniformVec4f(currentShader, "color", colorData[0]);
+                break;
+
+            case RenderCommandType.DrawText:
+                drawText();
                 break;
 
             default:
@@ -168,6 +220,7 @@ final class Renderer : CanvasRenderer {
                 break;
 
             default:
+                writeln("Command is: ", command.command_type);
                 debug throw new Error("Unknown command");
         }
     }
@@ -236,7 +289,60 @@ final class Renderer : CanvasRenderer {
             bindIndices(indicesBuffer[linesId]);
 
             renderIndexedGeometry(cast(uint) linesIndices.length, GL_LINES);
-            clearData();
         }
+
+        clearData();
+    }
+
+    private void drawText() {
+        auto color = vec4(0, 0, 0, 1);
+        const fontScaling = widget.view.cameraView.fontScale;
+        auto cameraView = widget.view.cameraView;
+
+        if (!colorData.empty) {
+            color = colorData.back;
+        }
+
+        foreach (const str; stringsData) {
+            auto pos = vec2(0, 0);
+
+            if (!vec2fData.empty) {
+                pos = vec2fData.back;
+                vec2fData.removeBack();
+            }
+
+            UpdateTextInput updateTextInput = {
+                textSize: cast(int) ceil(12 * fontScaling),
+                font: &widget.view.theme.regularFont,
+                text: to!dstring(str)
+            };
+
+            const textUpdateResult = updateTextureText(&gapiTextData, updateTextInput);
+
+            const Transform2D textTransform = {
+                position: toScreenPosition(
+                    cameraView.viewportHeight,
+                    widget.absolutePosition + pos,
+                    textUpdateResult.surfaceSize.y
+                ),
+                scaling: textUpdateResult.surfaceSize
+            };
+
+            const mvpMatrix = cameraView.mvpMatrix * create2DModelMatrix(textTransform);
+
+            setShaderProgramUniformMatrix(currentShader, "MVP", mvpMatrix);
+            setShaderProgramUniformVec4f(currentShader, "color", color);
+            setShaderProgramUniformTexture(currentShader, "utexture", textUpdateResult.texture, 0);
+
+            bindVAO(vao[quadsId]);
+            bindIndices(indicesBuffer[quadsId]);
+
+            renderIndexedGeometry(cast(uint) quadIndices.length, GL_TRIANGLE_STRIP);
+        }
+
+        clearData();
+    }
+
+    private void drawText(string text) {
     }
 }
