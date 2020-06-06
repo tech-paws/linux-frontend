@@ -18,9 +18,9 @@ final class SchemeEditorViewComponent : ViewComponent {
 
     @bindWidget Canvas canvas;
 
-    this(View view, in string laytoutFileName, in string shortcutsFileName) {
+    this(View view, in string layoutFileName, in string shortcutsFileName) {
         this.view = view;
-        super(view, laytoutFileName, shortcutsFileName);
+        super(view, layoutFileName, shortcutsFileName);
     }
 
     static SchemeEditorViewComponent create(View view) {

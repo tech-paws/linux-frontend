@@ -185,6 +185,10 @@ final class Renderer : CanvasRenderer {
                 drawLines();
                 break;
 
+            case RenderCommandType.DrawQuads:
+                drawQuads();
+                break;
+
             case RenderCommandType.PushColorShader:
                 bindShaderProgram(colorShader);
                 currentShader = colorShader;
@@ -198,6 +202,7 @@ final class Renderer : CanvasRenderer {
             case RenderCommandType.SetColorUniform:
                 assert(colorData.length >= 1);
                 setShaderProgramUniformVec4f(currentShader, "color", colorData[0]);
+                colorData.clear();
                 break;
 
             case RenderCommandType.DrawText:
@@ -294,6 +299,31 @@ final class Renderer : CanvasRenderer {
         clearData();
     }
 
+    private void drawQuads() {
+        for (int i = 0; i < vec2fData.length; i += 2) {
+            const pos = vec2fData[i] + widget.absolutePosition;
+            const size = vec2fData[i+1];
+
+            Transform2D transform;
+            transform.position = toScreenPosition(widget.view.cameraView.viewportHeight, pos, size.y);
+
+            transform.scaling = size;
+
+            const modelMatrix = create2DModelMatrix(transform);
+            const mvpMatrix = widget.view.cameraView.mvpMatrix * modelMatrix;
+            // const mvpMatrix = cameraView.mvpMatrix * create2DModelMatrix(textTransform);
+
+            setShaderProgramUniformMatrix(currentShader, "MVP", mvpMatrix);
+
+            bindVAO(vao[quadsId]);
+            bindIndices(indicesBuffer[quadsId]);
+
+            renderIndexedGeometry(cast(uint) quadIndices.length, GL_TRIANGLE_STRIP);
+        }
+
+        clearData();
+    }
+
     private void drawText() {
         auto color = vec4(0, 0, 0, 1);
         const fontScaling = widget.view.cameraView.fontScale;
@@ -303,7 +333,7 @@ final class Renderer : CanvasRenderer {
             color = colorData.back;
         }
 
-        foreach (const str; stringsData) {
+        foreach_reverse (const str; stringsData) {
             auto pos = vec2(0, 0);
 
             if (!vec2fData.empty) {
@@ -331,7 +361,6 @@ final class Renderer : CanvasRenderer {
             const mvpMatrix = cameraView.mvpMatrix * create2DModelMatrix(textTransform);
 
             setShaderProgramUniformMatrix(currentShader, "MVP", mvpMatrix);
-            setShaderProgramUniformVec4f(currentShader, "color", color);
             setShaderProgramUniformTexture(currentShader, "utexture", textUpdateResult.texture, 0);
 
             bindVAO(vao[quadsId]);
