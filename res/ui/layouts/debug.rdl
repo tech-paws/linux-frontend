@@ -1,5 +1,5 @@
 Panel
-    name: "panelDebug"
+    name: "panelTerminal"
     userCanResize: true
     regionAlign: bottom
     size: 300, 300
@@ -18,57 +18,41 @@ Panel
 
         TabButton
             checked: true
-            caption: "Debug"
+            caption: "Terminal"
             width: 100
-            name: "tabButtonDebug"
+            name: "tabButtonTerminal"
             icons: "tape"
 
         TabButton
-            caption: "Profile"
+            checked: false
+            caption: "Commands registry"
             width: 100
-            name: "tabButtonProfile"
+            name: "tabButtonCommands"
             icons: "clock"
 
     Panel
         regionAlign: client
-        tabVisibleRule: "tabButtonDebug"
-
-        # Panel
-        #     userCanResize: true
-        #     regionAlign: left
-        #     size: 300, 300
-        #     caption: "Checkpoints"
+        tabVisibleRule: "tabButtonTerminal"
 
         Panel
-            userCanResize: true
-            regionAlign: left
-            size: 300, 300
-            caption: "Frames"
-
-        Panel
-            userCanResize: true
             regionAlign: client
-            size: 300, 300
-            caption: "Variables"
+            padding: 10
 
-    Panel
-        regionAlign: client
-        tabVisibleRule: "tabButtonProfile"
-
-        Panel
-            userCanResize: true
-            regionAlign: left
-            size: 300, 300
-            caption: "Profile"
+            MultilineLabel
+                widthType: matchParent
+                heightType: wrapContent
+                lineHeightFactor: 1.5
+                caption: "Command 1\nCommand 2"
+                name: labelCommands
 
         Panel
-            userCanResize: true
-            regionAlign: left
-            size: 300, 300
-            caption: "Threads"
+            regionAlign: bottom
+            background: action
+            padding: 5
+            heightType: wrapContent
 
-        Panel
-            userCanResize: true
-            regionAlign: client
-            size: 300, 300
-            caption: "Memory"
+            ChainLayout
+                widthType: matchParent
+
+                TextInput widthType: matchParent name: "inputCommand"
+                Button caption: "Execute" widthType: wrapContent name: "buttonExecuteCommand"

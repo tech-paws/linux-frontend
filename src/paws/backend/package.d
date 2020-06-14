@@ -99,9 +99,17 @@ extern (C) {
 
     void c_send_request_commands(const(RequestCommand)* data, int length);
 
+    void frame_start();
+
+    void frame_end();
+
     RawBuffer get_render_commands(SerializeFormat format);
 
     RawBuffer get_exec_commands(SerializeFormat format);
+
+    RawBuffer debug_terminal_get_last_commands(SerializeFormat format);
+
+    RawBuffer debug_terminal_get_commands_registry(SerializeFormat format);
 
     void send_request_commands(SerializeFormat format, RawBuffer data);
 

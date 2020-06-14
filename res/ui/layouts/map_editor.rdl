@@ -2,10 +2,9 @@ Panel
     regionAlign: top
     userCanResize: false
     heightType: wrapContent
-    showSplit: false
     background: action
 
-    ToolbarTabLayout
+    StackLayout
         orientation: horizontal
         widthType: matchParent
 
@@ -18,58 +17,9 @@ Panel
                     size: 225, 200
                     isPopup: true
 
-                    ListMenuItem caption: "New" shortcut: "Ctrl+N" icons: "file"
-                    ListMenuItem caption: "Open" shortcut: "Ctrl+O" icons: "folder"
-                    ListMenuItem caption: "Open Recent..." shortcut: "Shift+Ctrl+O" icons: "folder_clock"
-                        ListMenu
-                            size: 200, 200
-                            isPopup: true
-
-                            ListMenuItem caption: "No Recent Files" isEnabled: false
-
-                    ListMenuItemsDivider
-                    ListMenuItem caption: "Save" shortcut: "Ctrl+S" icons: "check"
-                    ListMenuItem caption: "Save As..." shortcut: "Shift+Ctrl+S" icons: "check_dots"
-                    ListMenuItemsDivider
                     ListMenuItem caption: "User preferences" shortcut: "Ctrl+Alt+U" icons: "preferences"
                     ListMenuItemsDivider
                     ListMenuItem caption: "Quit" shortcut: "Ctrl+Q" icons: "quit"
-
-            MainMenuItem
-                margin: 2
-                caption: "Edit"
-
-                ListMenu
-                    isPopup: true
-                    widthtype: wrapContent
-                    size: 200, 200
-
-                    ListMenuItem caption: "Undo" shortcut: "Ctrl+Z" icons: "undo"
-                    ListMenuItem caption: "Redo" shortcut: "Shift+Ctrl+Z" icons: "redo"
-                    ListMenuItemsDivider
-                    ListMenuItem caption: "Cut" shortcut: "Ctrl+X" icons: "cut"
-                    ListMenuItem caption: "Copy" shortcut: "Ctrl+C" icons: "copy"
-                    ListMenuItem caption: "Paste" shortcut: "Ctrl+V" icons: "paste"
-                    ListMenuItemsDivider
-                    ListMenuItem caption: "Delete" shortcut: "Delete" icons: "delete"
-                    ListMenuItem caption: "Delete All by Type"
-                    ListMenuItemsDivider
-                    ListMenuItem caption: "Select All" shortcut: "Ctrl+A"
-                    ListMenuItem caption: "Deselect All" shortcut: "Shift+Ctrl+A"
-                    ListMenuItemsDivider
-                    ListMenuItem caption: "Duplicate" shortcut: "Ctrl+D" icons: "duplicate"
-
-            MainMenuItem
-                margin: 2
-                caption: "View"
-
-                ListMenu
-                    isPopup: true
-                    widthtype: wrapContent
-                    size: 200, 200
-
-                    ListMenuItem caption: "Toolbar" icons: "checkbox_checked"
-                    ListMenuItem caption: "Grid" icons: "checkbox_uchecked"
 
             MainMenuItem
                 margin: 2
@@ -82,48 +32,9 @@ Panel
 
                     ListMenuItem caption: "Manual" icons: "manual" shortcut: "F1"
                     ListMenuItemsDivider
-                    ListMenuItem caption: "Web Size" icons: "web"
+                    ListMenuItem caption: "Web Site" icons: "web"
                     ListMenuItemsDivider
                     ListMenuItem caption: "Splash Screen" icons: "info"
-
-        ToolbarTabButton
-            name: "toolbarTabMain"
-            caption: "Main"
-            checked: true
-
-        ToolbarTabButton
-            caption: "Modificators"
-
-        ToolbarTabButton
-            caption: "Transformators"
-
-Toolbar
-    ToolbarItemsLayout
-        tabVisibleRule: "toolbarTabMain"
-        padding: 3
-
-        ToolbarItem icon: "sprite" caption: "Sprite"
-        ToolbarItem icon: "surface" caption: "Surface"
-        ToolbarItem icon: "tiles" caption: "Tiles"
-        ToolbarItem icon: "point" caption: "Point"
-        ToolbarItem icon: "light" caption: "Light"
-        ToolbarItem icon: "sound" caption: "Sound"
-
-        ToolbarItemsDivider
-
-        ToolbarItem icon: "knife" caption: "Knife"
-        ToolbarItem icon: "divide" caption: "Divide"
-        ToolbarItem icon: "cut" caption: "Cut"
-        ToolbarItem icon: "partition" caption: "Partition"
-
-        ToolbarItemsDivider
-
-        ToolbarItem icon: "bend" caption: "Bend"
-        ToolbarItem icon: "twist" caption: "Twist"
-        ToolbarItem icon: "wave" caption: "Wave"
-        ToolbarItem icon: "edge" caption: "Edge"
-        ToolbarItem icon: "arc" caption: "Arc"
-        ToolbarItem icon: "widen" caption: "Widen"
 
 Panel
     userCanResize: true
@@ -139,13 +50,13 @@ Panel
     minSize: 200, 200
 
     Panel
-        caption: "Objects"
+        caption: "Components"
         userCanHide: true
         userCanResize: true
         regionAlign: top
         background: light
         position: 0, 0
-        size: 0, 200
+        size: 0, 250
         padding: 5
         minSize: 100, 200
 
@@ -190,28 +101,6 @@ Panel
                     caption: "Light"
                     icons: "sun"
 
-    Panel
-        name: "spritesResources"
-        heightType: wrapContent
-        widthType: matchParent
-        regionAlign: top
-        userCanResize: false
-        showSplit: false
-
-        include "resource_panel.rdl"
-            caption: "Sprites"
-
-    Panel
-        name: "prefabsResources"
-        heightType: wrapContent
-        widthType: matchParent
-        regionAlign: top
-        userCanResize: false
-        showSplit: false
-
-        include "resource_panel.rdl"
-            caption: "Prefabs"
-
     TabLayout
         orientation: horizontal
         height: 21
@@ -226,24 +115,8 @@ Panel
             icons: "settings"
             hideCaptionWhenUnchecked: true
 
-        TabButton
-            name: "tabButtonBoundaries"
-            caption: "Boundaries"
-            icons: "triangle"
-            widthType: wrapContent
-            hideCaptionWhenUnchecked: true
-
-        TabButton
-            name: "tabButtonAnimations"
-            caption: "Animations"
-            icons: "tape"
-            widthType: wrapContent
-            hideCaptionWhenUnchecked: true
-
     Panel
         name: "propertiesPanel"
-        # caption: "Properties"
-        # userCanHide: true
         userCanResize: false
         regionAlign: top
         background: light
@@ -253,6 +126,7 @@ Panel
         minSize: 150, 200
         isVisible: true
         heightType: wrapContent
+        finalFocus: true
 
         StackLayout
             widthType: matchParent
@@ -286,51 +160,6 @@ Panel
             Label caption: "Rotation" size: 20, 20 margin: 4, 0
 
             TextInput text: "0" widthType: matchParent postfix: "deg" inputType: integer
-
-    Panel
-        caption: "Layers"
-        regionAlign: top
-        background: light
-        size: 0, 100
-        minSize: 100, 200
-        userCanHide: true
-        padding: 5
-
-        ListMenu
-            widthType: matchParent
-            heightType: matchParent
-            isPopup: false
-
-            ListMenuItem caption: "Main" icons: "open_eye", "cursor"
-
-    Panel
-        regionAlign: top
-        background: light
-        heightType: wrapContent
-
-        ChainLayout
-            widthType: wrapContent
-            margin: 5
-            locationAlign: right
-
-            Button
-                caption: ""
-                icons: "up"
-                isEnabled: false
-
-            Button
-                caption: ""
-                icons: "down"
-                isEnabled: false
-
-            Button
-                caption: ""
-                icons: "delete"
-                isEnabled: false
-
-            Button
-                caption: ""
-                icons: "add"
 
 Canvas
     name: "canvas"

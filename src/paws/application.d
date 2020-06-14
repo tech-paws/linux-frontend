@@ -21,6 +21,16 @@ final class MainApplication : Application {
         rootView.onProgress(event);
     }
 
+    override void onFrameStart() {
+        super.onFrameStart();
+        frame_start();
+    }
+
+    override void onFrameEnd() {
+        super.onFrameEnd();
+        frame_end();
+    }
+
     override void onRender() {
         super.onRender();
         rootView.onRender();

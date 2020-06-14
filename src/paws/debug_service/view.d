@@ -4,11 +4,14 @@ import rpui.view_component;
 import rpui.view;
 import rpui.widget;
 import rpui.widgets.tab_button.widget;
+import rpui.widgets.text_input.widget;
+import rpui.widgets.multiline_label.widget;
 
 final class DebugViewComponent : ViewComponent {
-    @bindWidget Widget panelDebug;
-    @bindWidget TabButton tabButtonDebug;
-    @bindWidget TabButton tabButtonProfile;
+    @bindWidget Widget panelTerminal;
+    @bindWidget TabButton tabButtonTerminal;
+    @bindWidget TextInput inputCommand;
+    @bindWidget MultilineLabel labelCommands;
 
     this(View view, in string laytoutFileName, in string shortcutsFileName) {
         super(view, laytoutFileName, shortcutsFileName);
@@ -18,27 +21,19 @@ final class DebugViewComponent : ViewComponent {
         return ViewComponent.createFromFileWithShortcuts!(DebugViewComponent)(view, "debug.rdl");
     }
 
-    @shortcut("Debug.debug")
+    @shortcut("Debug.showTerminal")
     void debugLayout() {
-        if (panelDebug.isVisible && tabButtonDebug.checked) {
-            panelDebug.isVisible = false;
-        }
-        else {
-            panelDebug.isVisible = true;
-            tabButtonDebug.checked = true;
-            tabButtonProfile.checked = false;
-        }
-    }
+        // labelCommands.caption = debugGetTerminalCommands();
 
-    @shortcut("Debug.profile")
-    void profileLayout() {
-        if (panelDebug.isVisible && tabButtonProfile.checked) {
-            panelDebug.isVisible = false;
+        if (panelTerminal.isVisible && tabButtonTerminal.checked) {
+            panelTerminal.isVisible = false;
+            inputCommand.text = "";
+            inputCommand.blur();
         }
         else {
-            panelDebug.isVisible = true;
-            tabButtonDebug.checked = false;
-            tabButtonProfile.checked = true;
+            panelTerminal.isVisible = true;
+            tabButtonTerminal.checked = true;
+            inputCommand.focus();
         }
     }
 }

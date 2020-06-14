@@ -1,5 +1,4 @@
 include "general.rdl"
 
 Debug
-    profile: "Ctrl+Num8"
-    debug: "Ctrl+Num9"
+    showTerminal: "Tilde"
