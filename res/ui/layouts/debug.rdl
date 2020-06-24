@@ -2,7 +2,7 @@ Panel
     name: "panelTerminal"
     userCanResize: true
     regionAlign: bottom
-    size: 300, 300
+    size: 200, 200
     finalFocusRegion: true
     darkSplit: true
     finalFocus: true
@@ -35,17 +35,6 @@ Panel
         tabVisibleRule: "tabButtonTerminal"
 
         Panel
-            regionAlign: client
-            padding: 10
-
-            MultilineLabel
-                widthType: matchParent
-                heightType: wrapContent
-                lineHeightFactor: 1.5
-                caption: "Command 1\nCommand 2"
-                name: labelCommands
-
-        Panel
             regionAlign: bottom
             background: action
             padding: 5
@@ -56,3 +45,16 @@ Panel
 
                 TextInput widthType: matchParent name: "inputCommand"
                 Button caption: "Execute" widthType: wrapContent name: "buttonExecuteCommand"
+
+        Panel
+            regionAlign: client
+            padding: 5
+            name: "panelCommands"
+            reverseScrollY: true
+
+            ListMenu
+                isPopup: false
+                widthType: matchParent
+                heightType: wrapContent
+
+                ListMenuItem caption: "Command 1" icons: "triangle"

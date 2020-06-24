@@ -99,6 +99,8 @@ extern (C) {
 
     void c_send_request_commands(const(RequestCommand)* data, int length);
 
+    void c_execute_command(RawBuffer data);
+
     void frame_start();
 
     void frame_end();
@@ -120,6 +122,13 @@ extern (C) {
 
 string rawBufferToString(RawBuffer buffer) {
     return (cast(immutable(char)*)buffer.data)[0..buffer.length];
+}
+
+RawBuffer rawBufferFromString(string buffer) {
+    return RawBuffer(
+        &(cast(byte[]) buffer)[0],
+        buffer.length
+    );
 }
 
 CommandData createEmptyData() {
@@ -152,6 +161,10 @@ CommandData createColorData(float r, float g, float b, float a) {
         Vec2i(0, 0),
         Color(r, g, b, a)
     );
+}
+
+void executeCommand(in string command) {
+    c_execute_command(rawBufferFromString(command));
 }
 
 final class CommandsHandler {
